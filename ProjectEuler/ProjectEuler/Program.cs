@@ -15,7 +15,7 @@ namespace ProjectEuler
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            BigInteger result = P022NamesScores();
+            BigInteger result = P026ReciprocalCycles();
             sw.Stop();
             Console.WriteLine(result);
             Console.WriteLine("Time: {0}", sw.Elapsed.ToString());
@@ -853,7 +853,7 @@ namespace ProjectEuler
                 List<Int64> curList = factorsOf(i);
                 //remove the largest number
                 curList.RemoveAt(1);
-                //Get the proper divisors
+                //Get the sum of proper divisors
                 Int64 sumFactors = 0;
                 foreach (Int64 factor in curList)
                 {
@@ -885,12 +885,88 @@ namespace ProjectEuler
             }
             return sumResult;
         }
+        static BigInteger P022NamesScores()
+        {
+            System.IO.StreamReader sr =
+                new System.IO.StreamReader("p022_names.txt");
+            string line = sr.ReadLine();
+            List<string> names = line.Split(',').ToList();
+            List<string> names2 = new List<string>();
+            foreach (string name in names)
+            {
+                char[] removeChars = new char[] { '"' };
+                names2.Add(name.Trim(removeChars));
+            }
+            //sort the names
+            names2.Sort((x, y) => string.Compare(x, y));
+            //Total
+            int total = 0;
+            int i = 1;
+            foreach (string name in names2)
+            {
+                int nameSum = 0;
+                char[] nameChars = name.ToArray();
+                foreach (char c in nameChars)
+                {
+                    nameSum += c - 64;
+                }
+                total += i * nameSum;
+                i += 1;
+
+            }
+
+            return total;
+        }
+        static int P023NonAbundantSums()
+        {
+            //Find the sum of all the positive integers which cannot be 
+            //written as the sum of two abundant numbers.
+            //sum of proper divisors is greater than n, it is called 
+            //abundant.
+
+            //Dictionary holds list of abundant numbers
+            HashSet<int> abundants = new HashSet<int>();
+
+            //Sum pos integers where != sum two abundants
+            int total = 1;
+
+            //Get a list of abundant numbers
+            for (int i = 2; i <= 28123; i++)
+            {
+                int sumFactors = 0;
+                foreach (int factor in properDivisors(i))
+                {
+                    sumFactors += factor;
+                }
+                //If abundant
+                if (sumFactors > i)
+                {
+                    //add to abundants list
+                    abundants.Add(i);
+                }
+                //for each abundant
+                bool doesnt = true;
+                foreach (int abundant in abundants)
+                {
+                    //If the abundant has its counterpart
+                    if (abundants.Contains(i - abundant))
+                    {
+                        doesnt = false;
+                        break;
+                    }
+                }
+                if (doesnt)
+                {
+                    total += i;
+                }
+            }
+            return total;
+        }
         #endregion
 
         #region generic
         static List<Int64> factorsOf(Int64 number)
         {
-            //What is the 10 001st prime number?
             List<Int64> result = new List<Int64>();
 
             Int64 sqrt = (Int64)Math.Sqrt(number);
@@ -934,42 +1010,146 @@ namespace ProjectEuler
             //else no other factors hence prime
             return true;
         }
+        static List<Int64> properDivisors(Int64 integer)
+        {
+            //list of factors    
+            List<Int64> curList = factorsOf(integer);
+            //remove the largest number
+            curList.RemoveAt(1);
+            return curList;
+        }
         #endregion
 
-        static BigInteger P022NamesScores()
+        static Int64 P024LexicographicPermutations()
         {
-            System.IO.StreamReader sr =
-                new System.IO.StreamReader("p022_names.txt");
-            string line = sr.ReadLine();
-            List<string> names = line.Split(',').ToList();
-            List<string> names2 = new List<string>();
-            foreach (string name in names)
+            //What is the millionth lexicographic permutation of the 
+            //digits 0, 1, 2, 3, 4, 5, 6, 7, 8 and 9?
+            
+            //What's the 4th perm where 3 digits
+            //3 groups of two = 6 total = 3*2*1
+            //not in first group 2<4
+            //in second group => 1st number = 1
+            //now finding (4-2'th) number in two
+            //not in first group as 3<4
+            //in second group
+
+            List<int> digits = new List<int>(){0,1,2,3,4,5,6,7,8,9};
+            int target = 1000000-1;
+            Int64 result = 0;
+            while(digits.Count != 0)
             {
-                char[] removeChars = new char[]{'"'};
-                names2.Add(name.Trim(removeChars));
-            }
-            //sort the names
-            names2.Sort((x, y) => string.Compare(x, y));
-            //Total
-            int total = 0;
-            int i = 1;
-            foreach(string name in names2)
-            {
-                int nameSum = 0;
-                char[] nameChars = name.ToArray();
-                foreach(char c in nameChars)
+                int total = 1;
+                for(int i=1;i<=digits.Count;i++)
                 {
-                    nameSum += c - 64;
+                    total *= i;
                 }
-                total += i * nameSum;
-                i += 1;
-
+                //Gets which group the target is in
+                int group = (int)((Math.Floor((decimal)target / total * digits.Count)));
+                //updates target
+                target -= total/digits.Count * group;
+                result += digits[group] * (Int64)Math.Pow(10, digits.Count-1);
+                digits.Remove(digits[group]);
             }
 
-            return total;
+            return result;
         }
 
+        static BigInteger P0251000DigitFibonacciNumber()
+        {
+            BigInteger F0 = 1;
+            BigInteger F1 = 1;
+            int counter = 2;
+            while(F0.ToString().Length <1000 && F1.ToString().Length<1000)
+            {
+                //leapfrog
+                F0 = F1 + F0;
+                F1 = F0 + F1;
+                counter += 2;
+            }
+            if(F0.ToString().Length ==1000 && F1.ToString().Length==1000)
+            {
+                if(F0<F1)
+                {
+                    return counter-1;
+                }
+                else
+                {
+                    return counter;
+                }
+            }
 
+            if (F0.ToString().Length == 1000)
+            {
+                return counter-1;
+            }
+            else
+            {
+                return counter;
+            }
+            
+        }
+
+        static int P026ReciprocalCycles()
+        {
+            //Find the value of d < 1000 for which 1/d contains the longest 
+            //recurring cycle in its decimal fraction part.
+            
+            //length and number of longest recurring decimal
+            int length =0;
+            int result =0;
+
+            //Dictionary(remainder, position)
+            Dictionary<int, int> remaindersLengthList;
+            
+            for (int i = 1; i <= 1000; i++)
+            {
+                
+                remaindersLengthList = new Dictionary<int, int>();
+                //write own decimal finder
+                //start at 0.1 remainder 10
+                int remainder = 10;
+                int position = 0;
+
+                while (remainder != 0)
+                {
+                    int factor = remainder / i;
+
+                    if (factor == 0)
+                    {
+                        remainder *= 10;
+                    }
+                    else
+                    {
+                        position += 1;
+                        remainder = remainder % i;
+                        //If found point of recurring
+                        if (remaindersLengthList.ContainsKey(remainder))
+                        {
+                            //check to see if length between repeating decimals
+                            //is longest so far
+                            if (position - remaindersLengthList[remainder] > length)
+                            {
+                                length = position - remaindersLengthList[remainder];
+                                //set new result
+                                result = i;
+                            }
+                            break;
+                        }
+                        else
+                        {
+                            //If the remainders isnt in the list, add it
+                            remaindersLengthList.Add(remainder, position);
+                        }
+                        
+                    }
+                }
+                //Only check odd numbers hack
+                i += 1;
+
+
+            }
+            return result;
+        }
 
     }
 }
