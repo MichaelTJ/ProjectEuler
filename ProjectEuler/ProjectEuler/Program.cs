@@ -15,7 +15,7 @@ namespace ProjectEuler
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            BigInteger result = P30DigitFifthPowers();
+            BigInteger result = P035CircularPrimes();
             sw.Stop();
             Console.WriteLine(result);
             Console.WriteLine("Time: {0}", sw.Elapsed.ToString());
@@ -964,7 +964,7 @@ namespace ProjectEuler
         }
         #endregion
 
-        #region generic
+        #region generic functions
         static List<Int64> factorsOf(Int64 number)
         {
             List<Int64> result = new List<Int64>();
@@ -1051,6 +1051,42 @@ namespace ProjectEuler
                 }
             }
             return current;
+        }
+        static Int64[] lowestCommonDenom(Int64 numerator, Int64 denominator)
+        {
+            List<Int64> factorsOfNumer = factorsOf(numerator);
+            List<Int64> factorsOfDenom = factorsOf(denominator);
+
+            Int64 newNumer = numerator;
+            Int64 newDenom = denominator;
+            //Go through factors list from biggest to smallest
+            foreach(Int64 factorN in factorsOfNumer)
+            {
+                Int64 invFactorN = numerator / factorN;
+                if(factorsOfDenom.Contains(invFactorN))
+                {
+                    if (newNumer >= invFactorN) 
+                    { 
+                        newNumer = newNumer / invFactorN;
+                        newDenom = newDenom / invFactorN;
+                    }
+
+                }
+            }
+
+            return new Int64[] { newNumer, newDenom };
+        }
+        static List<int> toDigits(int number)
+        {
+            List<int> digits = new List<int>();
+            while (number > 0)
+            {
+                digits.Add(number % 10);
+                number = number / 10;
+            }
+            digits.Reverse();
+            return digits;
+
         }
         #endregion
 
@@ -1278,7 +1314,7 @@ namespace ProjectEuler
             return results.Count;
         }
 
-        static int P30DigitFifthPowers()
+        static int P030DigitFifthPowers()
         {
             //Find the sum of all the numbers that can be written as 
             //the sum of fifth powers of their digits.
@@ -1300,6 +1336,207 @@ namespace ProjectEuler
                 }
             }
             return result;
+        }
+
+        static int P031CoinSums(int cost = 200)
+        {
+            //How many different ways can £2 be made using any number of coins?
+
+
+            //bottom up
+            int[] currency = { 1, 2, 5, 10, 20, 50, 100, 200 };
+            int[] ways = new int[cost + 1];
+            ways[0] = 1;
+
+            for (int i = 0; i < currency.Length; i++)
+            {
+                for (int j = currency[i]; j <= cost; j++)
+                {
+                    ways[j] += ways[j - currency[i]];
+
+                }
+            }
+            return ways[cost];
+        }
+
+        static int P032PandigitalProducts()
+        {
+            //We shall say that an n-digit number is pandigital if it makes 
+            //use of all the digits 1 to n exactly once; for example, the 
+            //5-digit number, 15234, is 1 through 5 pandigital.
+
+            //Find the sum of all products whose multiplicand/multiplier/product 
+            //identity can be written as a 1 through 9 pandigital.
+
+            //brute
+            int multiplicand = 1;
+            int multiplier = 1;
+            int product = 0;
+            List<int> products = new List<int>();
+
+            for (multiplicand = 1; multiplicand <= 10000; multiplicand++ )
+            {
+                //get each result once
+                for(multiplier = multiplicand; multiplier<= 10000; multiplier++)
+                {
+                    product = multiplicand * multiplier;
+                    //if 
+                    if (product > 98765432) { break; }
+                    //check for pandigital
+                    char[] panDigits = (multiplicand.ToString() +
+                        multiplier.ToString() + product.ToString()).ToCharArray();
+                    //check that there's 9 digits
+                    if (panDigits.Length < 9) { continue; }
+                    else if (panDigits.Length > 9) { break; }
+                    else if (panDigits.Contains('0')) { continue; }
+                    else
+                    {
+                        List<int> testList = new List<int>();
+                        foreach(int digit in panDigits)
+                        {
+                            //if the digit is already used
+                            if(testList.Contains(digit)){break;}
+                            testList.Add(digit);
+                        }
+
+                        //if there's 9 unique digits
+                        if(testList.Count == 9)
+                        {
+                            //If the product isn't already in the list
+                            if (!products.Contains(product))
+                            {
+                                products.Add(product);
+                            }
+                        }
+                    }
+
+                }
+            }
+            int sumProducts = 0;
+            foreach(int panDigitProduct in products)
+            {
+                sumProducts += panDigitProduct;
+            }
+            return sumProducts;
+
+        }
+
+        static int P033DigitCancellingFractions()
+        {
+            double productNumer = 1;
+            double productDenom = 1;
+            //All possible combinations
+            for(double midDigit=1;midDigit<=9;midDigit++)
+            {
+                for(double topTenDigit=1; topTenDigit<=midDigit; topTenDigit++)
+                {
+                    for(double botOneDigit = 1; botOneDigit<=9; botOneDigit++)
+                    {
+                        double numerator = topTenDigit * 10 + midDigit;
+                        double denominator = midDigit * 10 + botOneDigit;
+                        //if digit fraction = digitcancel fraction
+                        if ((numerator/denominator) == (topTenDigit/botOneDigit)
+                            && numerator/denominator!= 1)
+                        {
+                            productNumer *= topTenDigit;
+                            productDenom *= botOneDigit;
+                        }
+                    }
+                }
+            }
+            return (int)lowestCommonDenom((long)productNumer,(long)productDenom)[1];
+        }
+
+        static int P034DigitFactorials()
+        {
+            int sumAnswer = 0;
+            Dictionary<int, int> numFactorials = new Dictionary<int, int>();
+            numFactorials.Add(0,1);
+            numFactorials.Add(1, 1);
+            numFactorials.Add(2, 2);
+            //Filling single digit factorials dictionary
+            int curFactorial = 2;
+            for(int i=3; i<10; i++)
+            {
+                curFactorial *= i;
+                numFactorials.Add(i, curFactorial);
+            }
+            //going to be slow
+            //numFactorials[9]*i.ToString().Length
+            //maxes out at 2540161
+            int sumTotal;
+            for (int i = 3; i <= 2540161; i++)
+            {
+                sumTotal = 0;
+                foreach(int digit in toDigits(i))
+                {
+                    sumTotal += numFactorials[digit];
+                }
+                if(sumTotal == i)
+                {
+                    sumAnswer += i;
+                }
+            }
+            return sumAnswer;
+
+        }
+
+        static int P035CircularPrimes()
+        {
+            //The number, 197, is called a circular prime because all 
+            //rotations of the digits: 197, 971, and 719, are themselves prime.
+
+            //How many circular primes are there below one million?
+            HashSet<int> rotatablePrimes = new HashSet<int>();
+            rotatablePrimes.Add(2);
+            for(int i = 3; i<1000000; i++)
+            {
+                //Hack to find even no's
+                string curNo = i.ToString();
+                if (curNo.Contains('2')) { continue; }
+                else if (curNo.Contains('4')) { continue; }
+                else if (curNo.Contains('6')) { continue; }
+                else if (curNo.Contains('8')) { continue; }
+
+                //if it hasn't already been found
+                if (!rotatablePrimes.Contains(i))
+                {
+                    if (isPrime(i))
+                    {
+                        List<int> primesFromRot = new List<int>(){i};
+                        //check for circularity
+                        List<int> digits = toDigits(i);
+                        for(int j=1; j<digits.Count;j++)
+                        {
+                            //rotate
+                            //list will be slow... shrug
+                            digits.Add(digits[0]);
+                            digits.RemoveAt(0);
+
+                            //put the numbers back together
+                            double newNum = 0;
+                            for(int k = 0; k<digits.Count; k++)
+                            {
+                                newNum += digits[k] * Math.Pow(10, digits.Count - k-1);
+                            }
+                            if(!isPrime((Int64)newNum))
+                            {
+                                break;
+                            }
+                            else { primesFromRot.Add((int)newNum); }
+                        }
+                        //if a new one got added for each rotation
+                        if(primesFromRot.Count == digits.Count)
+                        {
+                            foreach(int prime in primesFromRot)
+                            {
+                                rotatablePrimes.Add(prime);
+                            }
+                        }
+                    }
+                }
+            }
+            return rotatablePrimes.Count();
         }
     }
 }
