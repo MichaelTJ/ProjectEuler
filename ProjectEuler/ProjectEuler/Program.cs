@@ -1085,13 +1085,25 @@ namespace ProjectEuler
 
             return new Int64[] { newNumer, newDenom };
         }
-        static List<int> ToDigits(string str)
+        static List<int> ToDigits(int number)
+        {
+            List<int> digits = new List<int>();
+            while (number > 0)
+            {
+                digits.Add(number % 10);
+                number = number / 10;
+            }
+
+            digits.Reverse();
+            return digits;
+        }
+        static List<int> ToDigits(string number)
         {
             List<int> returnDigits = new List<int>();
-            char[] digits = str.ToCharArray();
+            char[] digits = number.ToCharArray();
             foreach(char digit in digits)
             {
-                returnDigits.Add((int)digit - 42);
+                returnDigits.Add((int)digit - 48);
             }
             return returnDigits;
         }
@@ -1476,7 +1488,7 @@ namespace ProjectEuler
             for (int i = 3; i <= 2540161; i++)
             {
                 sumTotal = 0;
-                foreach(int digit in toDigits(i))
+                foreach(int digit in ToDigits(i))
                 {
                     sumTotal += numFactorials[digit];
                 }
@@ -1513,7 +1525,7 @@ namespace ProjectEuler
                     {
                         List<int> primesFromRot = new List<int>(){i};
                         //check for circularity
-                        List<int> digits = toDigits(i);
+                        List<int> digits = ToDigits(i);
                         for(int j=1; j<digits.Count;j++)
                         {
                             //rotate
@@ -1834,8 +1846,14 @@ namespace ProjectEuler
                 n += i.ToString().Length;
             }
             Console.WriteLine(finalDigits);
-            List<int> digits = finalD
-            return 0;
+            List<int> digitList = ToDigits(finalDigits);
+            int result = 1;
+            foreach(int digit in digitList)
+            {
+                Console.WriteLine(digit);
+                result *= digit;
+            }
+            return result;
            
         }
     }
