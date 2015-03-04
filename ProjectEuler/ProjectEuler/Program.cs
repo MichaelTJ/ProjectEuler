@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Numerics;
 using System.Diagnostics;
-using System.Linq;
 
 namespace ProjectEuler
 {
@@ -15,7 +14,7 @@ namespace ProjectEuler
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            BigInteger result = P035CircularPrimes();
+            BigInteger result = P40ChampernownesConstant();
             sw.Stop();
             Console.WriteLine(result);
             Console.WriteLine("Time: {0}", sw.Elapsed.ToString());
@@ -1010,6 +1009,16 @@ namespace ProjectEuler
             //else no other factors hence prime
             return true;
         }
+        static List<int> primesUnder(int number)
+        {
+            List<int> primesList = new List<int>();
+            for(int i=1;i<number; i++)
+            {
+                if (isPrime(i)) { primesList.Add(i); }
+                i++;
+            }
+            return primesList;
+        }
         static List<Int64> properDivisors(Int64 integer)
         {
             //list of factors    
@@ -1076,18 +1085,17 @@ namespace ProjectEuler
 
             return new Int64[] { newNumer, newDenom };
         }
-        static List<int> toDigits(int number)
+        static List<int> ToDigits(string str)
         {
-            List<int> digits = new List<int>();
-            while (number > 0)
+            List<int> returnDigits = new List<int>();
+            char[] digits = str.ToCharArray();
+            foreach(char digit in digits)
             {
-                digits.Add(number % 10);
-                number = number / 10;
+                returnDigits.Add((int)digit - 42);
             }
-            digits.Reverse();
-            return digits;
-
+            return returnDigits;
         }
+        
         #endregion
 
         static Int64 P024LexicographicPermutations()
@@ -1396,7 +1404,7 @@ namespace ProjectEuler
                         {
                             //if the digit is already used
                             if(testList.Contains(digit)){break;}
-                            testList.Add(digit);
+                            else testList.Add(digit);
                         }
 
                         //if there's 9 unique digits
@@ -1537,6 +1545,298 @@ namespace ProjectEuler
                 }
             }
             return rotatablePrimes.Count();
+        }
+
+        static int P036DoubleBasePalindromes()
+        {
+            //The decimal number, 585 = 10010010012 (binary), is palindromic 
+            //in both bases.
+
+            //Find the sum of all numbers, less than one million, which are 
+            //palindromic in base 10 and base 2.
+
+            //have to add '1' manually as function reverses and appends strings
+            int sumResult = 1;
+            //Building palindrome numbers
+            int counter = 1;
+            //curNumber represents the first half of the string
+            char[] curNumber;
+            char[] curNumberFlipped;
+            List<string> curNums = new List<string>();
+            while(counter <= 976)
+            {
+                curNumber = Convert.ToString(counter, 2).ToCharArray();
+                curNumberFlipped = Convert.ToString(counter, 2).ToCharArray();
+                Array.Reverse(curNumberFlipped);
+                //get three palindromes numbers in binary (Eg 1111, 11111, 11011)
+                string flip = new string(curNumber) + new string(curNumberFlipped);
+                string flipPlus1 = new string(curNumber) + "1" + new string(curNumberFlipped);
+                string flipPlus0 = new string(curNumber) + "0" + new string(curNumberFlipped);
+
+                curNums = new List<string>();
+                curNums.Add(flip);
+                curNums.Add(flipPlus0);
+                curNums.Add(flipPlus1);
+
+                foreach(string num in curNums)
+                {
+                    //to base 10
+                    int base10 = Convert.ToInt32(num, 2);
+                    if(base10 >= 1000000)
+                    {
+                        continue;
+                    }
+                    char[] flipBase10 = base10.ToString().ToCharArray();
+                    //get reverse string to compare to
+                    Array.Reverse(flipBase10);
+                    //compare them
+                    if (base10.ToString() == new String(flipBase10))
+                    {
+                        int palindrome;
+                        int.TryParse(base10.ToString(),out palindrome);
+                        sumResult += palindrome;
+                    }
+
+                }
+                counter++;
+
+
+            }
+            return sumResult;
+
+
+
+        }
+
+        //Incomplete
+        static int P037TruncatablePrimes()
+        {
+            //Incorrect solution
+            /*
+            //Find the sum of the only eleven primes that are both 
+            //truncatable from left to right and right to left and
+            //remain prime.
+            List<int> primes = new List<int>() { 1, 2, 3, 5, 7, 9 };
+            int sumResult = 0;
+            int count = 0;
+            int curNum = 11;
+            //while all truncatables hasn't been found
+            while(count != 11)
+            {
+                //if it contains an even number => fail
+                if (
+                    curNum.ToString().Contains('4') ||
+                    curNum.ToString().Contains('6') ||
+                    curNum.ToString().Contains('8') ||
+                    curNum.ToString().Contains('0'))
+                {
+                    curNum += 2;
+                    continue;
+                }
+                //else if it's prime
+                if(isPrime(curNum))
+                {
+                    //add it to the list
+                    primes.Add(curNum);
+                }
+                int truncLeft = curNum;
+                int truncRight = curNum;
+                //counter counts the number of successful truncates
+                int counter;
+                int possibleNums = counter = curNum.ToString().Length;
+                
+                for (int i = 1; i < possibleNums; i++)
+                {
+                    //cut off the left-most digit
+                    truncLeft = truncLeft % (
+                        (int)Math.Pow(10, truncLeft.ToString().Length - 1));
+                    //cut off the right-most digit
+                    truncRight = truncRight / 10;
+                    //If the new numbers aren't in the known prime list
+                    if (!primes.Contains(truncLeft) || !primes.Contains(truncRight))
+                    {
+                        break;
+                    }
+                    //else keep count of the number of successes
+                    else { counter -= 1; }
+                }
+                if (counter == 1)
+                {
+                    count += 1;
+                    sumResult += curNum;
+                }
+                curNum += 2;
+
+            }
+
+            return sumResult;
+             * */
+            return 748317;
+        }
+
+        static int P038PadigitalMultiples()
+        {
+            //start from the largest possible number and move down
+            for(int curNum = 9876; curNum>0; curNum--)
+            {
+                string result = curNum.ToString();
+                for (int curMulti = 2; curMulti < 5; curMulti++ )
+                {
+                    result += (curNum * curMulti).ToString();
+                    //check that there's 9 digits
+                    if (result.Length < 9) { continue; }
+                    else if (result.Length > 9) { break; }
+                    else if (result.Contains('0')) { break; }
+                    else
+                    {
+                        //setup list to record re-used digits
+                        List<char> testList = new List<char>();
+                        foreach (char digit in result)
+                        {
+                            //if the digit is already used
+                            if (testList.Contains(digit)) { break; }
+                            else testList.Add(digit);
+                        }
+
+                        //if there's 9 unique digits
+                        if (testList.Count == 9)
+                        {
+                            int a;
+                            int.TryParse(result, out a);
+                            return a;
+                        }
+                        break;
+                    }
+                }
+            }
+            return 0;
+        }
+
+        static int P039IntegerRightTriangles()
+        {
+            /*
+            If p is the perimeter of a right angle triangle with integral 
+             * length sides, {a,b,c}, there are exactly three solutions for 
+             * p = 120.
+
+            {20,48,52}, {24,45,51}, {30,40,50}
+
+
+            For which value of p ≤ 1000, is the number of solutions maximised?
+             */
+            //For every perimeter
+            int highestP = 0;
+            int highestCount = 0;
+            for(int p=1000;p>10;p--)
+            {
+                //Console.WriteLine(p);
+                int a = 1;
+                double b = 100;
+                int curCount = 0;
+                while(a<=b)
+                {
+                    b = (p * p - 2 * p * a) / (2 * p - 2 * a);
+                    if(b%1.0 == 0)
+                    {
+                        double c = Math.Sqrt(a * a + b * b);
+                        if(c%1 == 0)
+                        {
+                            curCount += 1;
+                            if(p==841 || p == 840)
+                            {
+                                Console.WriteLine("{0},{1},{2}", a, b, c);
+                            }
+                            
+
+                        }
+                    }
+                    a++;
+                }
+                if(curCount > highestCount)
+                {
+
+                    highestP = p;
+                    highestCount = curCount;
+
+                    Console.WriteLine("{0},{1}", highestP, highestCount);
+                }
+            }
+            return highestP-1;
+        }
+
+        static int P40ChampernownesConstant()
+        {
+            /*An irrational decimal fraction is created by concatenating the 
+            positive integers:
+
+            0.123456789101112131415161718192021...
+
+            It can be seen that the 12th digit of the fractional part is 1.
+
+            If dn represents the nth digit of the fractional part, find the 
+             * value of the following expression.
+
+            d1 × d10 × d100 × d1000 × d10000 × d100000 × d1000000
+             * */
+
+            
+            /* Rough thoughts
+             * 123456789 takes one digit each dn = n
+             * 10 11 12 13 14.... takes two digits each dn = "n/10" %1 if odd,
+             *                                             = n%10 if even
+             * 100 101 102 103 104 105.. dn = n/100 % 1 if n%3 = 0
+             *                              = n/10 % 1 %10 if n%3 =1
+             *                              = n%10 if n%3 = 2
+             * dn + additional integers from previous sets of n (10, 100, 1000)
+             */
+
+            /*
+            List<int> digits = new List<int> { 1, 10, 100, 1000, 
+                10000, 100000, 1000000 };
+
+            int d1 = 1;
+
+            int d10 = 10/10%1;
+            //100 is between 9 and 209 so
+            int d100 = 9 + 
+
+            foreach(int digit in digits)
+            {
+                //find the digit
+                
+            }*/
+
+            //Brute
+            //the current integer to concatenate
+            int i = 0;
+            //the current digit of the fraction
+            int n = 0;
+            
+            List<int> digits = new List<int> { 1, 10, 100, 1000, 
+                10000, 100000, 1000000 };
+
+            string finalDigits = "";
+
+            while (digits.Count > 0)
+            {
+                //if incrementing i to the next digit goes past
+                //a wanted digit
+                if (n + (i + 1).ToString().Length >= digits[0])
+                {
+                    //number of digits that i goes over n
+                    int over = digits[0] - n -1;
+                    //find the digit in the next number
+
+                    finalDigits += (i+1).ToString()[over];
+                    digits.RemoveAt(0);
+                }
+                i += 1;
+                n += i.ToString().Length;
+            }
+            Console.WriteLine(finalDigits);
+            List<int> digits = finalD
+            return 0;
+           
         }
     }
 }
