@@ -14,7 +14,7 @@ namespace ProjectEuler
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            BigInteger result = P40ChampernownesConstant();
+            BigInteger result = P041PandigitalPrime();
             sw.Stop();
             Console.WriteLine(result);
             Console.WriteLine("Time: {0}", sw.Elapsed.ToString());
@@ -1012,7 +1012,7 @@ namespace ProjectEuler
         static List<int> primesUnder(int number)
         {
             List<int> primesList = new List<int>();
-            for(int i=1;i<number; i++)
+            for (int i = 1; i < number; i++)
             {
                 if (isPrime(i)) { primesList.Add(i); }
                 i++;
@@ -1029,17 +1029,17 @@ namespace ProjectEuler
         }
         static Dictionary<Int64, int> primeFactors(Int64 number, Dictionary<Int64, int> current = null)
         {
-            if(current == null)
+            if (current == null)
             {
                 current = new Dictionary<long, int>();
             }
             List<Int64> factors = properDivisors(number);
             //Hack for square-root numbers
-            if(Math.Sqrt(number)%1 == 0)
+            if (Math.Sqrt(number) % 1 == 0)
             {
                 factors.Add((int)Math.Sqrt(number));
             }
-            foreach(int factor in factors)
+            foreach (int factor in factors)
             {
                 if (isPrime(factor))
                 {
@@ -1069,13 +1069,13 @@ namespace ProjectEuler
             Int64 newNumer = numerator;
             Int64 newDenom = denominator;
             //Go through factors list from biggest to smallest
-            foreach(Int64 factorN in factorsOfNumer)
+            foreach (Int64 factorN in factorsOfNumer)
             {
                 Int64 invFactorN = numerator / factorN;
-                if(factorsOfDenom.Contains(invFactorN))
+                if (factorsOfDenom.Contains(invFactorN))
                 {
-                    if (newNumer >= invFactorN) 
-                    { 
+                    if (newNumer >= invFactorN)
+                    {
                         newNumer = newNumer / invFactorN;
                         newDenom = newDenom / invFactorN;
                     }
@@ -1101,20 +1101,66 @@ namespace ProjectEuler
         {
             List<int> returnDigits = new List<int>();
             char[] digits = number.ToCharArray();
-            foreach(char digit in digits)
+            foreach (char digit in digits)
             {
                 returnDigits.Add((int)digit - 48);
             }
             return returnDigits;
         }
-        
+
+        static List<Int64> calcPandigits(int n)
+        {
+            List<int> remainingDigits = new List<int>();
+            //123
+            for (int i = 1; i <= n; i++)
+            {
+                remainingDigits.Add(i);
+            }
+            return calcPandigits(remainingDigits, new List<int>());
+        }
+
+        static List<Int64> calcPandigits(List<int> remainingDigits, List<int> currentPerm)
+        {
+            List<Int64> permutations = new List<Int64>();
+
+            foreach (int digit in remainingDigits)
+            {
+                currentPerm.Add(digit);
+                //if the last digit has been added
+                if (remainingDigits.Count == 1)
+                {
+                    //add currentPerm to the list
+                    Int64 currentPermInt = 0;
+                    foreach (int number in currentPerm)
+                    {
+                        currentPermInt += number;
+                        currentPermInt *= 10;
+                    }
+                    currentPermInt /= 10;
+                    permutations.Add(currentPermInt);
+                }
+                else
+                {
+                    List<int> remainingDigitsCopy = new List<int>(remainingDigits);
+                    remainingDigitsCopy.Remove(digit);
+                    List<Int64> permutationList = calcPandigits(remainingDigitsCopy, currentPerm);
+                    for (int i = 0; i < permutationList.Count; i++)
+                    {
+                        permutations.Add(permutationList[i]);
+                    }
+                }
+
+                currentPerm.Remove(digit);
+            }
+            return permutations;
+        }
         #endregion
 
         static Int64 P024LexicographicPermutations()
         {
             //What is the millionth lexicographic permutation of the 
             //digits 0, 1, 2, 3, 4, 5, 6, 7, 8 and 9?
-            
+
             //What's the 4th perm where 3 digits
             //3 groups of two = 6 total = 3*2*1
             //not in first group 2<4
@@ -1123,21 +1169,21 @@ namespace ProjectEuler
             //not in first group as 3<4
             //in second group
 
-            List<int> digits = new List<int>(){0,1,2,3,4,5,6,7,8,9};
-            int target = 1000000-1;
+            List<int> digits = new List<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            int target = 1000000 - 1;
             Int64 result = 0;
-            while(digits.Count != 0)
+            while (digits.Count != 0)
             {
                 int total = 1;
-                for(int i=1;i<=digits.Count;i++)
+                for (int i = 1; i <= digits.Count; i++)
                 {
                     total *= i;
                 }
                 //Gets which group the target is in
                 int group = (int)((Math.Floor((decimal)target / total * digits.Count)));
                 //updates target
-                target -= total/digits.Count * group;
-                result += digits[group] * (Int64)Math.Pow(10, digits.Count-1);
+                target -= total / digits.Count * group;
+                result += digits[group] * (Int64)Math.Pow(10, digits.Count - 1);
                 digits.Remove(digits[group]);
             }
 
@@ -1149,18 +1195,18 @@ namespace ProjectEuler
             BigInteger F0 = 1;
             BigInteger F1 = 1;
             int counter = 2;
-            while(F0.ToString().Length <1000 && F1.ToString().Length<1000)
+            while (F0.ToString().Length < 1000 && F1.ToString().Length < 1000)
             {
                 //leapfrog
                 F0 = F1 + F0;
                 F1 = F0 + F1;
                 counter += 2;
             }
-            if(F0.ToString().Length ==1000 && F1.ToString().Length==1000)
+            if (F0.ToString().Length == 1000 && F1.ToString().Length == 1000)
             {
-                if(F0<F1)
+                if (F0 < F1)
                 {
-                    return counter-1;
+                    return counter - 1;
                 }
                 else
                 {
@@ -1170,30 +1216,30 @@ namespace ProjectEuler
 
             if (F0.ToString().Length == 1000)
             {
-                return counter-1;
+                return counter - 1;
             }
             else
             {
                 return counter;
             }
-            
+
         }
 
         static int P026ReciprocalCycles()
         {
             //Find the value of d < 1000 for which 1/d contains the longest 
             //recurring cycle in its decimal fraction part.
-            
+
             //length and number of longest recurring decimal
-            int length =0;
-            int result =0;
+            int length = 0;
+            int result = 0;
 
             //Dictionary(remainder, position)
             Dictionary<int, int> remaindersLengthList;
-            
+
             for (int i = 1; i <= 1000; i++)
             {
-                
+
                 remaindersLengthList = new Dictionary<int, int>();
                 //write own decimal finder
                 //start at 0.1 remainder 10
@@ -1230,7 +1276,7 @@ namespace ProjectEuler
                             //If the remainders isnt in the list, add it
                             remaindersLengthList.Add(remainder, position);
                         }
-                        
+
                     }
                 }
                 //Only check odd numbers hack
@@ -1253,9 +1299,9 @@ namespace ProjectEuler
             int highestB = 0;
 
             //for each b
-            for(int b = -1000; b<1000; b++)
+            for (int b = -1000; b < 1000; b++)
             {
-                if(isPrime(b))
+                if (isPrime(b))
                 {
                     int answer = b;
                     int primeRun = 0;
@@ -1263,7 +1309,7 @@ namespace ProjectEuler
                     for (int a = -1000; a < 1000; a++)
                     {
                         int n = 0;
-                        if ((b == 41 || b==-41) && a == 1)
+                        if ((b == 41 || b == -41) && a == 1)
                         {
                             int x = 0;
                         }
@@ -1277,12 +1323,12 @@ namespace ProjectEuler
                             answer = n * n + a * n + b;
 
                         }
-                        if(Math.Abs(primeRun) > Math.Abs(highestPrimeRun))
+                        if (Math.Abs(primeRun) > Math.Abs(highestPrimeRun))
                         {
                             highestPrimeRun = primeRun;
                             highestA = a;
                             highestB = b;
-                            
+
 
                         }
                         primeRun = 0;
@@ -1294,8 +1340,8 @@ namespace ProjectEuler
 
         static BigInteger P028umberSpiralDiagonals()
         {
-            
-            int sides =1;
+
+            int sides = 1;
             BigInteger diagonal = 1;
             BigInteger total = 1;
             int adding = 0;
@@ -1320,12 +1366,12 @@ namespace ProjectEuler
 
             //Brute force
             HashSet<BigInteger> results = new HashSet<BigInteger>();
-            for(int a =2; a<=100;a++)
+            for (int a = 2; a <= 100; a++)
             {
-                for(int b = 2; b<=100; b++)
+                for (int b = 2; b <= 100; b++)
                 {
-                    BigInteger x = (BigInteger)Math.Pow(a,b);
-                    if(!results.Contains(x))
+                    BigInteger x = (BigInteger)Math.Pow(a, b);
+                    if (!results.Contains(x))
                     {
                         results.Add(x);
                     }
@@ -1341,7 +1387,7 @@ namespace ProjectEuler
 
             //9474 = 9^4 + 4^4 + 7^4 + 4^4
             int result = 0;
-            for(int i=2; i<1000000000; i++)
+            for (int i = 2; i < 1000000000; i++)
             {
                 double iCheck = 0;
                 int curI = i;
@@ -1394,10 +1440,10 @@ namespace ProjectEuler
             int product = 0;
             List<int> products = new List<int>();
 
-            for (multiplicand = 1; multiplicand <= 10000; multiplicand++ )
+            for (multiplicand = 1; multiplicand <= 10000; multiplicand++)
             {
                 //get each result once
-                for(multiplier = multiplicand; multiplier<= 10000; multiplier++)
+                for (multiplier = multiplicand; multiplier <= 10000; multiplier++)
                 {
                     product = multiplicand * multiplier;
                     //if 
@@ -1412,15 +1458,15 @@ namespace ProjectEuler
                     else
                     {
                         List<int> testList = new List<int>();
-                        foreach(int digit in panDigits)
+                        foreach (int digit in panDigits)
                         {
                             //if the digit is already used
-                            if(testList.Contains(digit)){break;}
+                            if (testList.Contains(digit)) { break; }
                             else testList.Add(digit);
                         }
 
                         //if there's 9 unique digits
-                        if(testList.Count == 9)
+                        if (testList.Count == 9)
                         {
                             //If the product isn't already in the list
                             if (!products.Contains(product))
@@ -1433,7 +1479,7 @@ namespace ProjectEuler
                 }
             }
             int sumProducts = 0;
-            foreach(int panDigitProduct in products)
+            foreach (int panDigitProduct in products)
             {
                 sumProducts += panDigitProduct;
             }
@@ -1446,17 +1492,17 @@ namespace ProjectEuler
             double productNumer = 1;
             double productDenom = 1;
             //All possible combinations
-            for(double midDigit=1;midDigit<=9;midDigit++)
+            for (double midDigit = 1; midDigit <= 9; midDigit++)
             {
-                for(double topTenDigit=1; topTenDigit<=midDigit; topTenDigit++)
+                for (double topTenDigit = 1; topTenDigit <= midDigit; topTenDigit++)
                 {
-                    for(double botOneDigit = 1; botOneDigit<=9; botOneDigit++)
+                    for (double botOneDigit = 1; botOneDigit <= 9; botOneDigit++)
                     {
                         double numerator = topTenDigit * 10 + midDigit;
                         double denominator = midDigit * 10 + botOneDigit;
                         //if digit fraction = digitcancel fraction
-                        if ((numerator/denominator) == (topTenDigit/botOneDigit)
-                            && numerator/denominator!= 1)
+                        if ((numerator / denominator) == (topTenDigit / botOneDigit)
+                            && numerator / denominator != 1)
                         {
                             productNumer *= topTenDigit;
                             productDenom *= botOneDigit;
@@ -1464,19 +1510,19 @@ namespace ProjectEuler
                     }
                 }
             }
-            return (int)lowestCommonDenom((long)productNumer,(long)productDenom)[1];
+            return (int)lowestCommonDenom((long)productNumer, (long)productDenom)[1];
         }
 
         static int P034DigitFactorials()
         {
             int sumAnswer = 0;
             Dictionary<int, int> numFactorials = new Dictionary<int, int>();
-            numFactorials.Add(0,1);
+            numFactorials.Add(0, 1);
             numFactorials.Add(1, 1);
             numFactorials.Add(2, 2);
             //Filling single digit factorials dictionary
             int curFactorial = 2;
-            for(int i=3; i<10; i++)
+            for (int i = 3; i < 10; i++)
             {
                 curFactorial *= i;
                 numFactorials.Add(i, curFactorial);
@@ -1488,11 +1534,11 @@ namespace ProjectEuler
             for (int i = 3; i <= 2540161; i++)
             {
                 sumTotal = 0;
-                foreach(int digit in ToDigits(i))
+                foreach (int digit in ToDigits(i))
                 {
                     sumTotal += numFactorials[digit];
                 }
-                if(sumTotal == i)
+                if (sumTotal == i)
                 {
                     sumAnswer += i;
                 }
@@ -1509,7 +1555,7 @@ namespace ProjectEuler
             //How many circular primes are there below one million?
             HashSet<int> rotatablePrimes = new HashSet<int>();
             rotatablePrimes.Add(2);
-            for(int i = 3; i<1000000; i++)
+            for (int i = 3; i < 1000000; i++)
             {
                 //Hack to find even no's
                 string curNo = i.ToString();
@@ -1523,10 +1569,10 @@ namespace ProjectEuler
                 {
                     if (isPrime(i))
                     {
-                        List<int> primesFromRot = new List<int>(){i};
+                        List<int> primesFromRot = new List<int>() { i };
                         //check for circularity
                         List<int> digits = ToDigits(i);
-                        for(int j=1; j<digits.Count;j++)
+                        for (int j = 1; j < digits.Count; j++)
                         {
                             //rotate
                             //list will be slow... shrug
@@ -1535,20 +1581,20 @@ namespace ProjectEuler
 
                             //put the numbers back together
                             double newNum = 0;
-                            for(int k = 0; k<digits.Count; k++)
+                            for (int k = 0; k < digits.Count; k++)
                             {
-                                newNum += digits[k] * Math.Pow(10, digits.Count - k-1);
+                                newNum += digits[k] * Math.Pow(10, digits.Count - k - 1);
                             }
-                            if(!isPrime((Int64)newNum))
+                            if (!isPrime((Int64)newNum))
                             {
                                 break;
                             }
                             else { primesFromRot.Add((int)newNum); }
                         }
                         //if a new one got added for each rotation
-                        if(primesFromRot.Count == digits.Count)
+                        if (primesFromRot.Count == digits.Count)
                         {
-                            foreach(int prime in primesFromRot)
+                            foreach (int prime in primesFromRot)
                             {
                                 rotatablePrimes.Add(prime);
                             }
@@ -1575,7 +1621,7 @@ namespace ProjectEuler
             char[] curNumber;
             char[] curNumberFlipped;
             List<string> curNums = new List<string>();
-            while(counter <= 976)
+            while (counter <= 976)
             {
                 curNumber = Convert.ToString(counter, 2).ToCharArray();
                 curNumberFlipped = Convert.ToString(counter, 2).ToCharArray();
@@ -1590,11 +1636,11 @@ namespace ProjectEuler
                 curNums.Add(flipPlus0);
                 curNums.Add(flipPlus1);
 
-                foreach(string num in curNums)
+                foreach (string num in curNums)
                 {
                     //to base 10
                     int base10 = Convert.ToInt32(num, 2);
-                    if(base10 >= 1000000)
+                    if (base10 >= 1000000)
                     {
                         continue;
                     }
@@ -1605,7 +1651,7 @@ namespace ProjectEuler
                     if (base10.ToString() == new String(flipBase10))
                     {
                         int palindrome;
-                        int.TryParse(base10.ToString(),out palindrome);
+                        int.TryParse(base10.ToString(), out palindrome);
                         sumResult += palindrome;
                     }
 
@@ -1689,10 +1735,10 @@ namespace ProjectEuler
         static int P038PadigitalMultiples()
         {
             //start from the largest possible number and move down
-            for(int curNum = 9876; curNum>0; curNum--)
+            for (int curNum = 9876; curNum > 0; curNum--)
             {
                 string result = curNum.ToString();
-                for (int curMulti = 2; curMulti < 5; curMulti++ )
+                for (int curMulti = 2; curMulti < 5; curMulti++)
                 {
                     result += (curNum * curMulti).ToString();
                     //check that there's 9 digits
@@ -1739,32 +1785,32 @@ namespace ProjectEuler
             //For every perimeter
             int highestP = 0;
             int highestCount = 0;
-            for(int p=1000;p>10;p--)
+            for (int p = 1000; p > 10; p--)
             {
                 //Console.WriteLine(p);
                 int a = 1;
                 double b = 100;
                 int curCount = 0;
-                while(a<=b)
+                while (a <= b)
                 {
                     b = (p * p - 2 * p * a) / (2 * p - 2 * a);
-                    if(b%1.0 == 0)
+                    if (b % 1.0 == 0)
                     {
                         double c = Math.Sqrt(a * a + b * b);
-                        if(c%1 == 0)
+                        if (c % 1 == 0)
                         {
                             curCount += 1;
-                            if(p==841 || p == 840)
+                            if (p == 841 || p == 840)
                             {
                                 Console.WriteLine("{0},{1},{2}", a, b, c);
                             }
-                            
+
 
                         }
                     }
                     a++;
                 }
-                if(curCount > highestCount)
+                if (curCount > highestCount)
                 {
 
                     highestP = p;
@@ -1773,7 +1819,7 @@ namespace ProjectEuler
                     Console.WriteLine("{0},{1}", highestP, highestCount);
                 }
             }
-            return highestP-1;
+            return highestP - 1;
         }
 
         static int P40ChampernownesConstant()
@@ -1791,7 +1837,7 @@ namespace ProjectEuler
             d1 × d10 × d100 × d1000 × d10000 × d100000 × d1000000
              * */
 
-            
+
             /* Rough thoughts
              * 123456789 takes one digit each dn = n
              * 10 11 12 13 14.... takes two digits each dn = "n/10" %1 if odd,
@@ -1823,7 +1869,7 @@ namespace ProjectEuler
             int i = 0;
             //the current digit of the fraction
             int n = 0;
-            
+
             List<int> digits = new List<int> { 1, 10, 100, 1000, 
                 10000, 100000, 1000000 };
 
@@ -1836,10 +1882,10 @@ namespace ProjectEuler
                 if (n + (i + 1).ToString().Length >= digits[0])
                 {
                     //number of digits that i goes over n
-                    int over = digits[0] - n -1;
+                    int over = digits[0] - n - 1;
                     //find the digit in the next number
 
-                    finalDigits += (i+1).ToString()[over];
+                    finalDigits += (i + 1).ToString()[over];
                     digits.RemoveAt(0);
                 }
                 i += 1;
@@ -1848,13 +1894,36 @@ namespace ProjectEuler
             Console.WriteLine(finalDigits);
             List<int> digitList = ToDigits(finalDigits);
             int result = 1;
-            foreach(int digit in digitList)
+            foreach (int digit in digitList)
             {
                 Console.WriteLine(digit);
                 result *= digit;
             }
             return result;
-           
+
+        }
+
+        static Int64 P041PandigitalPrime()
+        {
+            /*
+            We shall say that an n-digit number is pandigital if it makes use 
+             * of all the digits 1 to n exactly once. For example, 2143 is a 
+             * 4-digit pandigital and is also prime.
+
+            What is the largest n-digit pandigital prime that exists?
+            */
+            for (int i = 9; i >= 1; i--)
+            {
+                List<Int64> panDigits = calcPandigits(i);
+                for (int j = panDigits.Count; j >= 1; j--)
+                {
+                    if (isPrime(panDigits[j - 1]))
+                    {
+                        return panDigits[j - 1];
+                    }
+                }
+            }
+            return 0;
         }
     }
 }
