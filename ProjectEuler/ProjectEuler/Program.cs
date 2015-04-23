@@ -14,7 +14,7 @@ namespace ProjectEuler
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            BigInteger result = P041PandigitalPrime();
+            BigInteger result = P050ConsecutivePrimeSum();
             sw.Stop();
             Console.WriteLine(result);
             Console.WriteLine("Time: {0}", sw.Elapsed.ToString());
@@ -1024,42 +1024,50 @@ namespace ProjectEuler
             //list of factors    
             List<Int64> curList = factorsOf(integer);
             //remove the largest number
-            curList.RemoveAt(1);
+            if(curList.Count ==2)
+            {
+                return new List<long>();
+            }
+            else 
+            {
+                //remove 1,num factors
+                curList.RemoveAt(1);
+                curList.RemoveAt(0);
+            }
             return curList;
         }
-        static Dictionary<Int64, int> primeFactors(Int64 number, Dictionary<Int64, int> current = null)
+        static Dictionary<Int64, int> primeFactors(Int64 number)
         {
-            if (current == null)
+            Dictionary<long, int> factorsList = new Dictionary<long, int>();
+            for (int i = 2; i <= number; i++)
             {
-                current = new Dictionary<long, int>();
-            }
-            List<Int64> factors = properDivisors(number);
-            //Hack for square-root numbers
-            if (Math.Sqrt(number) % 1 == 0)
-            {
-                factors.Add((int)Math.Sqrt(number));
-            }
-            foreach (int factor in factors)
-            {
-                if (isPrime(factor))
+                while(number%i == 0)
                 {
                     //add to results
-                    if (current.ContainsKey(factor))
+                    if (factorsList.ContainsKey(i))
                     {
-                        current[factor] += 1;
+                        factorsList[i] += 1;
                     }
                     else
                     {
-                        current.Add(factor, 1);
+                        factorsList.Add(i, 1);
                     }
+
+                    number /= i;
                 }
-                else
+                //not crucial, should speed up unless prime
+                if(number == 1)
                 {
-                    //if not prime get factors (recursive)
-                    current = primeFactors(factor, current);
+                    break;
                 }
             }
-            return current;
+            if(factorsList.Keys.Count == 0)
+            {
+                factorsList.Add(number,1);
+            }
+            return factorsList;
+            
+            
         }
         static Int64[] lowestCommonDenom(Int64 numerator, Int64 denominator)
         {
@@ -1112,7 +1120,7 @@ namespace ProjectEuler
         {
             List<int> remainingDigits = new List<int>();
             //123
-            for (int i = 1; i <= n; i++)
+            for (int i = 0; i <= n; i++)
             {
                 remainingDigits.Add(i);
             }
@@ -1129,15 +1137,18 @@ namespace ProjectEuler
                 //if the last digit has been added
                 if (remainingDigits.Count == 1)
                 {
-                    //add currentPerm to the list
-                    Int64 currentPermInt = 0;
-                    foreach (int number in currentPerm)
+                    if (currentPerm[0] != 0)
                     {
-                        currentPermInt += number;
-                        currentPermInt *= 10;
+                        //add currentPerm to the list
+                        Int64 currentPermInt = 0;
+                        foreach (int number in currentPerm)
+                        {
+                            currentPermInt += number;
+                            currentPermInt *= 10;
+                        }
+                        currentPermInt /= 10;
+                        permutations.Add(currentPermInt);
                     }
-                    currentPermInt /= 10;
-                    permutations.Add(currentPermInt);
                 }
                 else
                 {
@@ -1925,5 +1936,496 @@ namespace ProjectEuler
             }
             return 0;
         }
+        static int P042CodedTriangleNumbers()
+        {
+            //Total no of triangle words
+            int totalTriangles = 0;
+            //Get the words
+            System.IO.StreamReader sr =
+                new System.IO.StreamReader("p042_words.txt");
+            string line = sr.ReadLine();
+            List<string> names = line.Split(',').ToList();
+            List<string> names2 = new List<string>();
+            foreach (string name in names)
+            {
+                char[] removeChars = new char[] { '"' };
+                names2.Add(name.Trim(removeChars));
+            }
+
+            //Find values up to 26*10 (roughly max word score) = 260
+
+            List<int> possibleValues = new List<int>();
+            int i =1;
+            int result = 0;
+            while(result<=260)
+            {
+                result = i * (i + 1) / 2;
+                possibleValues.Add(result);
+                i++;
+            }
+
+            foreach(string word in names2)
+            {
+                int wordScore = 0;
+                foreach(char c in word)
+                {
+                    wordScore += c - 64;
+                }
+                if(possibleValues.Contains(wordScore))
+                {
+                    totalTriangles += 1;
+                }
+            }
+            return totalTriangles;
+        }
+        static long P043SubStringDivisibility()
+        {
+            /*The number, 1406357289, is a 0 to 9 pandigital number because it is made up of each of the digits 0 to 9 in some order, but it also has a rather interesting sub-string divisibility property.
+
+            Let d1 be the 1st digit, d2 be the 2nd digit, and so on. In this way, we note the following:
+
+            d2d3d4=406 is divisible by 2
+            d3d4d5=063 is divisible by 3
+            d4d5d6=635 is divisible by 5
+            d5d6d7=357 is divisible by 7
+            d6d7d8=572 is divisible by 11
+            d7d8d9=728 is divisible by 13
+            d8d9d10=289 is divisible by 17
+            Find the sum of all 0 to 9 pandigital numbers with this property.
+            */
+
+            //check if pandigital
+            List<long> pandigits = calcPandigits(9);
+            long result = 0;
+            for (int i = 0; i < pandigits.Count; i++ )
+            {
+                if(P034ToSubString(pandigits[i],8)%17 == 0)
+                {
+                    if (P034ToSubString(pandigits[i], 7) % 13 == 0)
+                    {
+                        if (P034ToSubString(pandigits[i], 6) % 11 == 0)
+                        {
+                            if (P034ToSubString(pandigits[i], 5) % 7 == 0)
+                            {
+                                if (P034ToSubString(pandigits[i], 4) % 5 == 0)
+                                {
+                                    if (P034ToSubString(pandigits[i], 3) % 3 == 0)
+                                    {
+                                        if (P034ToSubString(pandigits[i], 2) % 2 == 0)
+                                        {
+                                            result += pandigits[i];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+            
+        }
+
+        static int P034ToSubString(long pandigit, int startIndex)
+        {
+            string pandStr = pandigit.ToString();
+            int newInt = 
+                (pandStr[startIndex-1] - 48) * 100 +
+                (pandStr[startIndex] - 48) * 10 +
+                pandStr[startIndex + 1]-48;
+
+            return newInt;
+        }
+
+        static int P044PentagonNumbers()
+        {
+            /*Pentagonal numbers are generated by the formula, Pn=n(3n−1)/2. The first ten pentagonal numbers are:
+
+            1, 5, 12, 22, 35, 51, 70, 92, 117, 145, ...
+
+            It can be seen that P4 + P7 = 22 + 70 = 92 = P8. However, their difference, 70 − 22 = 48, is not pentagonal.
+
+            Find the pair of pentagonal numbers, Pj and Pk, for which their sum and difference are pentagonal and D = |Pk − Pj| is minimised; what is the value of D?
+             * */
+
+            List<int> pentagonals = new List<int>();
+            //pentNo's grow faster than i => seperated
+            int pentNo = 1;
+
+            pentagonals.Add(P044AddPent(pentNo));
+            pentNo += 1;
+            pentagonals.Add(P044AddPent(pentNo));
+            pentNo += 1;
+            pentagonals.Add(P044AddPent(pentNo));
+            pentNo += 1;
+            for(int i =0; i<1000000; i++)
+            {
+                //working through the list of pentNo's from bot to top
+                
+                for(int j=0; j<i; j++)
+                {
+                    //addition
+                    int addNos = pentagonals[j]+pentagonals[i];
+                    while(pentagonals[pentagonals.Count-1] < addNos)
+                    {
+                        pentagonals.Add(P044AddPent(pentNo));
+                        pentNo += 1;
+                    }
+                    if(pentagonals.Contains(addNos))
+                    {
+                        int subNos = pentagonals[i] - pentagonals[j];
+                        if(pentagonals.Contains(subNos))
+                        {
+                            return subNos;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        static int P044AddPent(int i)
+        {
+            return i * (3 * i - 1) / 2;
+        }
+    
+
+        static long P045TriangularPentagonalAndHexagonal()
+        {
+            /*
+            Triangle, pentagonal, and hexagonal numbers are generated 
+             * by the following formulae:
+
+            Triangle	 	Tn=n(n+1)/2	 	1, 3, 6, 10, 15, ...
+            Pentagonal	 	Pn=n(3n−1)/2	 	1, 5, 12, 22, 35, ...
+            Hexagonal	 	Hn=n(2n−1)	 	1, 6, 15, 28, 45, ...
+            It can be verified that T285 = P165 = H143 = 40755.
+
+            Find the next triangle number that is also pentagonal and 
+             * hexagonal.
+    */
+            long triNo = 285;
+            int hexNo = 143;
+            //Added one to pentNo
+            long pentNo = 166;
+
+            long triVal = P045GetTri(triNo);
+            long hexVal = P045GetHex(hexNo);
+            long pentVal = P045GetPent(pentNo);
+            while(true)
+            {
+                if(hexVal != pentVal)
+                {
+                    if(pentVal < hexVal)
+                    {
+                        pentNo += 1;
+                        pentVal = P045GetPent(pentNo);
+                    }
+                    else
+                    {
+                        hexNo += 1;
+                        hexVal = P045GetHex(hexNo);
+                    }
+                }
+                else
+                {
+                    triNo = 2 * hexNo - 1;
+                    triVal = P045GetTri(triNo);
+                    while(triVal < hexVal)
+                    {
+                        triNo += 1;
+                        triVal = P045GetTri(triNo);
+                    }
+                    if(triVal == hexVal)
+                    {
+                        return triVal;
+                    }
+                }
+            }
+
+        }
+        static long P045GetTri(long n)
+        {
+            return n * (n + 1) / 2;
+        }
+        static long P045GetHex(int n)
+        {
+            return n * (2 * n - 1);
+        }
+        static long P045GetPent(long n)
+        {
+            //not repeated code... returns different data type
+            return n * (3 * n - 1) / 2;
+        }
+
+        static int P046GoldbachsOtherConjecture()
+        {
+            /*
+            It was proposed by Christian Goldbach that every odd composite 
+             * number can be written as the sum of a prime and twice a square.
+
+            9 = 7 + 2×12
+            15 = 7 + 2×22
+            21 = 3 + 2×32
+            25 = 7 + 2×32
+            27 = 19 + 2×22
+            33 = 31 + 2×12
+
+            It turns out that the conjecture was false.
+
+            What is the smallest odd composite that cannot be written as the 
+             * sum of a prime and twice a square?
+             */
+
+            List<int> primes = new List<int>();
+            //simplifies getting every odd num
+            primes.Add(1);
+            primes.Add(2);
+            int i = 3;
+            while(true)
+            { 
+                if (isPrime(i))
+                {
+                    primes.Add(i);
+                }
+                else
+                {
+                    //isComposite
+                    //start from top of primes list
+                    //start from smallest square
+                    int curSquare = 1;
+
+                    //for every prime, top to bottom
+                    for (int primeIndex = primes.Count - 1; primeIndex >= 0; primeIndex--)
+                    {
+                        while (primes[primeIndex] + 2 * curSquare * curSquare < i)
+                        {
+                            curSquare += 1;
+                        }
+                        if (primes[primeIndex] + 2 * curSquare * curSquare == i)
+                        {
+                            break;
+                        }
+                        //if sum is over reset curSquare
+                        curSquare = 1;
+                        if (primeIndex == 0)
+                        {
+                            return i;
+                        }
+                    }
+
+                }
+                i+=2;
+            }
+        }
+
+        static int P047DistinctPrimesFactors()
+        {/*
+            The first two consecutive numbers to have two distinct prime factors are:
+
+            14 = 2 × 7
+            15 = 3 × 5
+
+            The first three consecutive numbers to have three distinct prime factors are:
+
+            644 = 2² × 7 × 23
+            645 = 3 × 5 × 43
+            646 = 2 × 17 × 19.
+
+            Find the first four consecutive integers to have four distinct prime factors. What is the first of these numbers?
+          */
+            int i=1;
+            //checking every third number then exploring
+            while (true)
+            {
+                if (primeFactors(i).Keys.Count == 4)
+                {
+                    int backs = 0;
+                    int forwards = 0;
+                    //look backwards
+                    for(int j=1;j<=3;j++)
+                    {
+                        if(primeFactors(i-j).Keys.Count==4)
+                        {
+                            backs += 1;
+                        }
+                        else { break; }
+                    }
+                    //looking forwards 
+                    for(int j=1;j<=3;j++)
+                    {
+                        if(primeFactors(i+j).Keys.Count==4)
+                        {
+                            forwards += 1;
+                        }
+                        else { break; }
+                    }
+                    //See if you have 4 consecutive
+                    if(backs+forwards == 2)
+                    {
+
+                    }
+                    if(backs+forwards+1 == 4)
+                    {
+                        return i - backs;
+                    }
+                    else
+                    {
+                        i += 3;
+                    }
+                }
+                else
+                {
+                    i += 3;
+                }
+            }
+        }
+
+        static long P048SelfPowers()
+        {
+            //sum from 1^1 to 1000^1000
+            //send the last 10 digits
+            long result = 0;
+            for (int i = 1; i < 1000; i++)
+            {
+                long lastTenDigits = i;
+                for (int j = 1; j < i; j++)
+                {
+                    lastTenDigits *= i;
+                    lastTenDigits %= 10000000000;
+                }
+                result += lastTenDigits;
+            }
+            return result % 10000000000;
+        }
+            
+        static long P049PrimePermutations()
+        {
+            /*
+             * The arithmetic sequence, 1487, 4817, 8147, in which each of the 
+             * terms increases by 3330, is unusual in two ways: (i) each of 
+             * the three terms are prime, and, (ii) each of the 4-digit 
+             * numbers are permutations of one another.
+
+            There are no arithmetic sequences made up of three 1-, 2-, or 
+             * 3-digit primes, exhibiting this property, but there is one 
+             * other 4-digit increasing sequence.
+
+            What 12-digit number do you form by concatenating the three terms 
+             * in this sequence?
+             * */
+            for(int i=1001; i<10000;i++)
+            {
+                if(isPrime(i))
+                {
+                    //4digits => 24 permutations
+                    List<int> digits = ToDigits(i);
+                    int temp = digits[0];
+                    if(digits.Contains(0))
+                    {
+                        i++;
+                        continue;
+                    }
+                    digits.RemoveAt(0);
+                    digits.Insert(2, temp);
+                    int newTemp = 0;
+                    foreach(int digit in digits)
+                    {
+                        newTemp += digit;
+                        newTemp *= 10;
+                    }
+                    newTemp /= 10;
+                    if(isPrime(newTemp))
+                    {
+                        List<int> digits2 = ToDigits(newTemp);
+                        int temp2 = digits2[0];
+                        digits2.RemoveAt(0);
+                        digits2.Insert(2, temp2);
+                        int newTemp2 = 0;
+                        foreach (int digit in digits2)
+                        {
+                            newTemp2 += digit;
+                            newTemp2 *= 10;
+                        }
+                        newTemp2 /= 10;
+
+                        if (isPrime(newTemp2))
+                        {
+                            if(newTemp2-newTemp == newTemp - i)
+                            {
+                                Console.Write("{0}{1}{2}\n",i, newTemp, newTemp2);
+                            }
+                        }
+                    }
+
+                }
+                i++;
+                    
+            }
+            return 1;
+        }
+
+        static long P050ConsecutivePrimeSum()
+        {/*
+          * The prime 41, can be written as the sum of six consecutive primes:
+
+            41 = 2 + 3 + 5 + 7 + 11 + 13
+            This is the longest sum of consecutive primes that adds to a prime 
+          * below one-hundred.
+
+            The longest sum of consecutive primes below one-thousand that adds 
+          * to a prime, contains 21 terms, and is equal to 953.
+
+            Which prime, below one-million, can be written as the sum of the 
+          * most consecutive primes?*/
+
+            List<int> primesList = new List<int>();
+            primesList.Add(2);
+            primesList.Add(3);
+            int curMax = 3;
+            long sum = 0;
+            long recordSum = 0;
+            int recordResult = 0;
+            for (int i = 0; i < primesList.Count; i++)
+            {
+                sum = 0;
+                int j = 0;
+                while (sum < 1000000)
+                {
+                    //if the list isn't long enough
+                    //add the next prime
+                    while (primesList.Count < i+j+1)
+                    {
+                            curMax += 2;
+                        while (!isPrime(curMax))
+                        {
+                            curMax += 2;
+                        }
+                        primesList.Add(curMax);
+                    }
+                    sum += primesList[i + j];
+                    j += 1;
+                }
+                sum -= primesList[i + j-1];
+                //if not a record
+                if(j<recordResult)
+                {
+                    continue;
+                }
+                //take end list no's away from su
+                while(!isPrime(sum))
+                {
+                    j -= 1;
+                    sum -= primesList[i + j-1];
+                }
+                //here we have the biggest primeSum consec run below 1000
+                if(recordResult < j)
+                {
+                    recordResult = j;
+                    recordSum = sum;
+                }
+            }
+            return recordSum;
+        }
+
     }
 }
